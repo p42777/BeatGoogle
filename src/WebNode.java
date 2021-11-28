@@ -40,7 +40,6 @@ public class WebNode {
 		nodeScore = webPage.score;		
 	}
 	
-	
 	public void addChild(WebNode child){
 		// add the WebNode to its children list
 		children.add(child);
