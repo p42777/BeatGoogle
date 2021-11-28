@@ -13,7 +13,7 @@ public class WebTree {
 		setPostOrderScore(root, keywords);
 	}
 	
-	private void setPostOrderScore(WebNode startNode, ArrayList<Keyword> keywords) throws IOException{
+	protected void setPostOrderScore(WebNode startNode, ArrayList<Keyword> keywords) throws IOException{
 		// 1. compute the score of children nodes
 		// 2. setNode score of startNode
 		startNode.setNodeScore(keywords);
@@ -30,7 +30,7 @@ public class WebTree {
 		eularPrintTree(root);
 	}
 	
-	private void eularPrintTree(WebNode startNode){
+	public void eularPrintTree(WebNode startNode){
 		int nodeDepth = startNode.getDepth();
 		
 		if(nodeDepth > 1) System.out.print("\n" + repeat("\t", nodeDepth-1));
@@ -46,20 +46,23 @@ public class WebTree {
 		
 	}
 	
-	private String repeat(String str,int repeat){
+	public String repeat(String str,int repeat){
 		String retVal  = "";
 		for(int i = 0 ; i < repeat ; i++){
 			retVal += str;
 		}
 		return retVal;
 	}
-	public void setTreeOrder() {
+	
+	public void setOrder() {
 		int end = root.children.size()-1;
 		sort(0, end);
 	
 	}
 	
-	private void sort(int left, int right){
+	public void sort(int left, int right){
+		
+		// do sorting by quickSort
 		
 		if(left >= right) return;
 		int index = left;
@@ -79,8 +82,9 @@ public class WebTree {
 	}
 	
 	
-	private void swap(int index_1, int index_2){
+	public void swap(int index_1, int index_2){
 		
+		// new a WebNode tmp to do swapping
 		WebNode tmp = root.children.get(index_1);
 		root.children.set(index_1, root.children.get(index_2));
 		root.children.set(index_2, tmp);
