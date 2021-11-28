@@ -20,7 +20,7 @@ public class WordCounter {
 		URL url = new URL(URLString);
 	    try {
 	    	URLConnection conn = url.openConnection();
-	    	conn.setRequestProperty("User-agent", "Chrome/7.0.517.44"); // needed to change
+	    	//conn.setRequestProperty("User-agent", ""); 
 	    	InputStream input = conn.getInputStream();
 	    	InputStreamReader in = new InputStreamReader(input,"utf-8");
 	    	BufferedReader br = new BufferedReader(in);
