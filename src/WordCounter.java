@@ -1,53 +1,58 @@
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
+import java.io.*;
+import java.net.*;
 
 public class WordCounter {
-	private String urlStr;
-    private String content;
-    
-    public WordCounter(String urlStr){
-    	this.urlStr = urlStr;
-    }
-    
-    private String fetchContent() throws IOException{
-    	
-    	URL url = new URL(this.urlStr);
-		URLConnection conn = url.openConnection();
-		InputStreamReader reader = new InputStreamReader(conn.getInputStream(),"UTF8");
-		BufferedReader br = new BufferedReader(reader);
-		String retVal = "";
-		String line = null;
-		
-		while ((line = br.readLine()) != null){
-    		retVal += line + "\n";
-    	}
-    	return retVal;
-    	
-    }
-    
-    public int countKeyword(String keyword) throws IOException{
-    	if (content == null)
-    		content = fetchContent();
-    	
-  
-    	//To do a case-insensitive search, we turn the whole content and keyword into upper-case:
-    	content = content.toUpperCase();
-    	keyword = keyword.toUpperCase();
- 
-    	int retVal = 0;
-    	int fromIdx = 0;
-    	int found = -1;
- 
-    	while ((found = content.indexOf(keyword, fromIdx)) != -1){
-    		retVal++;
-    		fromIdx = found + keyword.length();
-    	}
-    	return retVal;
-    }
 
+	public String content;
+	public KeywordList keywordList;
+	private String urlStr;
+
+	public WordCounter(String title, String url, KeywordList keywordList) throws IOException {
+		this.content = title + GoogleQuery.fetchContent(url);
+		this.keywordList = keywordList;
+	}
+
+	 @SuppressWarnings("unused")
+	private String fetchContent() throws IOException{
+	    	
+	    	URL url = new URL(this.urlStr);
+			URLConnection conn = url.openConnection();
+			InputStreamReader reader = new InputStreamReader(conn.getInputStream(),"UTF8");
+			BufferedReader br = new BufferedReader(reader);
+			String retVal = "";
+			String line = null;
+			
+			while ((line = br.readLine()) != null){
+	    		retVal += line + "\n";
+	    	}
+	    	return retVal;
+	    	
+	    }
+	 
+	public int countScore() {
+		int score = 0;
+		if (content == null) {
+			score = 0;
+			return score;
+		}
+		
+		content = content.toUpperCase();
+		for (Keyword keyword : keywordList.lst) {
+			score = score + countKeyword(keyword.name);
+		}
+		return score;
+	}
+
+	public int countKeyword(String keyword) {
+		keyword = keyword.toUpperCase();
+
+		int retVal = 0, fromIndex = 0, found = -1;
+		int i = found = content.indexOf(keyword, fromIndex);
+		while (i != -1) {
+			retVal += 1;
+			fromIndex = found + keyword.length();
+		}
+		return retVal;
+	}
 
 }

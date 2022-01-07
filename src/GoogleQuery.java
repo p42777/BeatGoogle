@@ -1,127 +1,61 @@
+import java.io.*;
+import java.util.*;
+import java.net.*;
+import org.jsoup.*;
+import org.jsoup.nodes.*;
+import org.jsoup.select.*;
 
-import java.io.BufferedReader;
+public class GoogleQuery {
 
-import java.io.IOException;
-
-import java.io.InputStream;
-
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.URL;
-
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.HashMap;
-
-
-
-import org.jsoup.Jsoup;
-
-import org.jsoup.nodes.Document;
-
-import org.jsoup.nodes.Element;
-
-import org.jsoup.select.Elements;
-
-import java.net.URLEncoder;
-
-
-
-public class GoogleQuery 
-
-{
-
-	public String searchKeyword;
-
-	public String url;
-
-	public String content;
+	public int searchNum;
+	public String searchKeyword, url, content, results;
+	public KeywordList kLst;
+	public PriorityQueue<WebNode> heap;
+	HashMap<String, String> title = new HashMap<String, String>();
 	
-	public String time;
-	
-	//HashMap<String, String> title_time = new HashMap<String, String>();//store title and time
-	 
-	public Boolean results=true;
-
-	public GoogleQuery(String searchKeyword)
-
-	{
+	public GoogleQuery(String searchKeyword, int search) throws IOException {
 		
 		this.searchKeyword = searchKeyword;
-
-		this.url = "https://news.google.com/search?q="+encodeURL(searchKeyword)+"&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant";
+		this.searchNum = search;
+		setKeywords();
+		this.content = fetchContent(url);
+		this.heap = new PriorityQueue<WebNode>(2 * search, new WebComparator());
+		this.title = new HashMap<String, String>();
+		this.results = "";
+		getUrl();
 
 	}
-
 	
-
-	public String fetchContent() throws IOException
-
-	{
+	public static String fetchContent(String url) throws IOException {
 		String retVal = "";
-
-		URL u = new URL(url);
-
-		URLConnection conn = u.openConnection();
-
-		conn.setRequestProperty("User-agent", "Chrome/7.0.517.44");
-
-		InputStream in = conn.getInputStream();
-
-		InputStreamReader inReader = new InputStreamReader(in,"utf-8");
-
-		BufferedReader bufReader = new BufferedReader(inReader);
 		String line = null;
-
-		while((line=bufReader.readLine())!=null)
-		{
-			retVal += line;
-
-		}
-		return retVal;
-	}
-	public HashMap<String, String> query() throws IOException
-
-	{
-
-		if(content==null)
-
-		{
-
-			content= fetchContent();
-
-		}
-		HashMap<String, String> retVal = new HashMap<String, String>();
 		
-		Document doc = Jsoup.parse(content);
-		Elements lis = doc.select("div");
-		lis = lis.select(".kCrYT");
-//		 System.out.println(lis.size());
+		// URL Connection
+		URL u = new URL(url);
+		URLConnection conn = u.openConnection();
+		conn.setRequestProperty("User-agent", "Chrome/7.0.517.44");
+		InputStream in = conn.getInputStream();
 		
-		
-		for(Element li : lis)
-		{
-			try 
-
-			{
-				String citeUrl = li.select("a").get(0).attr("href");
-				String title = li.select("a").get(0).select(".vvjwJb").text();
-				if(title.equals("")) {
-					continue;
-				}
-				    //we directly catch the URL in google search page so the results 
-				    //we catch may have some unnecessary web sites.Thus, we need to add 'googleURL' to 
-				    //connect the web page
-				//title_time.put(title,time);
-				retVal.put(title, citeUrl);
-	
-			} catch (IndexOutOfBoundsException e) {
-				e.printStackTrace();
-			}
+		// Web Data
+		InputStreamReader inReader = new InputStreamReader(in, "utf-8");
+		BufferedReader bufReader = new BufferedReader(inReader);
+		while ((line = bufReader.readLine()) != null) {
+			retVal = retVal + line;
 		}
 		return retVal;
 	}
 	
+	public void setKeywords() {
+		String[] arr = searchKeyword.split(" ");
+		String keyword = "";
+		
+		for (int i = 0; i < arr.length; i++) {
+			keyword = keyword + arr[i] + "+";
+		}
+		this.url = "http://www.google.com/search?q=" + keyword + "音樂節" + "&oe=utf8&num=" + 2 * searchNum;
+		
+		this.kLst = new KeywordList(arr);
+	}
 	
 	public static String encodeURL(String url) {
 		try {
@@ -131,4 +65,85 @@ public class GoogleQuery
 		      return "Error: " + e.getMessage();
 		    }
 	}
+
+	public HashMap<String, String> HashMapQuery() throws IOException{
+
+		if(content==null){
+			content = fetchContent(url);
+		}
+		HashMap<String, String> map = new HashMap<String, String>();	
+		Document doc = Jsoup.parse(content);
+		Elements lis = doc.select("div");
+		lis = lis.select(".kCrYT");
+		for(Element li : lis){
+			try{
+				String citeUrl = li.select("a").get(0).attr("href");
+				String title = li.select("a").get(0).select(".vvjwJb").text();
+				if(title.equals("")) {
+					continue;
+				}
+				map.put(title, citeUrl);
+			} catch (IndexOutOfBoundsException e) {
+				e.printStackTrace();
+			}
+		}
+		return map;
+	}
+	
+	public String[][] ArrQuery() throws IOException {
+		WebNode node;
+		String[][] init = new String[searchNum][2];
+		String[][] arr = init;
+		int i;
+		for (i = 0; i < searchNum; i++) {
+			node = heap.poll();
+			Boolean condition = node!= null;
+			if (condition == true) {
+				arr[i][0] = node.webPage.title;
+				arr[i][1] = node.webPage.url;
+				}
+		}
+		return arr;
+	}
+	
+	public void getUrl() {
+		
+		Document doc = Jsoup.parse(content);
+		Elements lis = doc.select("div.kCrYT");
+		// Elements lis = doc.select("div.kCrYT > a");
+		int i = 0;
+		
+		for (Element li : lis) {
+			String title = li.select("h3").text();
+			if (title.equals("")) {
+				continue;
+			}
+			// add / offer websiteURL to heap
+			String url = "https://www.google.com" + li.attr("href");
+			try {
+				WebPage init = new WebPage(title, url, kLst);
+				WebNode node = new WebNode(init);
+				//heap.offer(node);
+				heap.add(node);
+				i += 1;
+				System.out.printf("%2d%s%n%s%d%n", i, ": " + title, "    Score: ", node.nodeScore);
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+				//continue;
+			}
+		}
+		
+		results = results + String.format("-".repeat(5) + "Searching Results" + "-".repeat(5) + "\n");
+		results = results + String.format("Keyword: " + searchKeyword + "\n");
+		results = results + String.format("Searched: " + searchNum + "\n");
+		results = results + String.format("Fine website: " + i + "\n");
+	}
+	
+	public String show() {
+		return results;
+	}
+
+
+	
+
 }
