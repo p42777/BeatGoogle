@@ -1,96 +1,103 @@
 import java.util.ArrayList;
 
+
 public class KeywordList {
+	
+	protected ArrayList<Result> lst;
 
- public ArrayList<Keyword> lst;
+	public KeywordList(){
+		this.lst = new ArrayList<Result>();
+    }
+	
+	public ArrayList<Result> getList(){
+		return lst;
+	}
+	
+	public void add(Result result){
+		lst.add(result);
+    }
+	
+	public void sort(){
+		quickSort(0, lst.size()-1);
+	}
+	
+	private void quickSort(int leftbound, int rightbound){
+	
+		if (leftbound < rightbound) {
+			int swapIndex = (leftbound-1);
+			for (int x = leftbound; x <= rightbound - 1; x++){
+				if (lst.get(x).nodeScore < lst.get(rightbound).nodeScore) {
+					swapIndex += 1;
+					swap(swapIndex, x);
+				}
+			}
+			swap((swapIndex+1), rightbound);
+			quickSort(leftbound, swapIndex);
+			quickSort(swapIndex + 2, rightbound);
+		}
+	}
+	
+	@SuppressWarnings("unused")
+	private void bubbleSort(int array[]) {
+	    int size = array.length;
+	    for (int i = 0; i < size - 1; i++)
+	      for (int j = 0; j < size - i - 1; j++)
+	        if (array[j] > array[j + 1]) {
+	          int temp = array[j];
+	          array[j] = array[j + 1];
+	          array[j + 1] = temp;
+	        }
+	  }
+	
+	@SuppressWarnings("unused")
+	private void selectionSort(int array[]) {
+	    int size = array.length;
+	    for (int step = 0; step < size - 1; step++) {
+	      int min_idx = step;
+	      for (int i = step + 1; i < size; i++) {
+	        if (array[i] < array[min_idx]) {
+	          min_idx = i;
+	        }
+	      }
+	      int temp = array[step];
+	      array[step] = array[min_idx];
+	      array[min_idx] = temp;
+	    }
+	  }
+	
+	@SuppressWarnings("unused")
+	private void insertionSort(int array[]) {
+	    int size = array.length;
+	    for (int step = 1; step < size; step++) {
+	      int key = array[step];
+	      int j = step - 1;
+	      while (j >= 0 && key < array[j]) {
+	        array[j + 1] = array[j];
+	        --j;
+	      }
+	      array[j + 1] = key;
+	    }
+	  }
+	
 
- 
- public KeywordList(String[] keywords) {
-	 this.lst  = new ArrayList<Keyword>();
-	 this.initSettings();
-	 addKeyword(keywords);
- 
- }
-
-
- public String toString() {
-	 
-	 String s = "";
-	 s = "Keywords:";
-	 for (Keyword keyword :lst) {
-		 s = s + " " + keyword.name;
-	 }
-	 return s;
- 	}
- 
- public void initSettings() {
-	 // set KeywordList of musicFes, genres, bands and politicians
- 
-	 lst.add(new Keyword("音樂祭", 5.0));
-	 lst.add(new Keyword("台灣", 4.5));
-	 lst.add(new Keyword("臺灣", 4.5));
-	 lst.add(new Keyword("獨立音樂", 4.0));
-	 lst.add(new Keyword("搖滾", 3.0));
-	 lst.add(new Keyword("金屬", 3.0));
-	 lst.add(new Keyword("龐克", 3.0));
-	 lst.add(new Keyword("另類", 3.0));
-	 lst.add(new Keyword("滅火器", 2.0));
-	 lst.add(new Keyword("怕胖團", 2.0));
-	 lst.add(new Keyword("血肉", 2.0));
-	 lst.add(new Keyword("閃靈", 2.0));
-	 lst.add(new Keyword("美秀", 2.0));
-	 lst.add(new Keyword("拍謝少年", 2.0));
-	 lst.add(new Keyword("老破麻", 2.0));
-	 lst.add(new Keyword("荷爾蒙少年", 2.0));
-	 lst.add(new Keyword("海豚刑警", 2.0));
-	 lst.add(new Keyword("TB", 2.0));
-	 lst.add(new Keyword("甜約翰", 2.0));
-	 lst.add(new Keyword("無妄", 2.0));
-	 lst.add(new Keyword("Leo王", 2.0));
-	 lst.add(new Keyword("春豔", 2.0));
-	 lst.add(new Keyword("李權哲", 2.0));
-	 lst.add(new Keyword("大港開唱", 1.5));
-	 lst.add(new Keyword("浪人", 1.5));
-	 lst.add(new Keyword("漂游者", 1.5));
-	 lst.add(new Keyword("火球祭", 1.5));
-	 lst.add(new Keyword("赤聲躁動", 1.5));
-	 lst.add(new Keyword("浮現祭", 1.5));
-	 lst.add(new Keyword("貴人散步", 1.5));
-	 lst.add(new Keyword("山海屯", 1.5));
-	 lst.add(new Keyword("爛泥", 1.5));
-	 
-	 lst.add(new Keyword("五月天", -2.0));
-	 lst.add(new Keyword("周興哲", -2.0));
-	 lst.add(new Keyword("盧秀燕", -2.0));
-	 lst.add(new Keyword("流行音樂", -3.0));
-	 
- }
- 
- public void addKeyword(String[] keywords) {
-  
-	 for (String keyword : keywords) {
+	private void swap(int a, int b){
+		Result tmp = lst.get(a);
+		lst.set(a, lst.get(b));
+		lst.set(b, tmp);
+	}
+	
+	public void show(){
 		
-		 if(keyword.equals("")) {
-			 continue;
-		 } 
-		 else {
-			 for(Keyword k: lst) {
-				 if(k.name.equals(keyword)) {
-					 k.weight = k.getWeight();
-					 break;
-				 }
-				 lst.add(new Keyword(keyword, k.getWeight()));
-				 
-			 }
-			 /*
-				if(!b) {
-				lst.add(new Keyword(keyword, k.getWeight() ));
-			 }
-			 */
-		 }
-	 }
- 
- }
-
-
+		StringBuilder sb = new StringBuilder();
+		for(int i = 0 ; i < lst.size() ; i++){
+			Result result = lst.get(i);
+			if(i > 0) {
+				sb.append(" ");
+			}
+			sb.append(result.toString());
+		}
+		
+		System.out.println(sb.toString());	
+	}
+	
 }

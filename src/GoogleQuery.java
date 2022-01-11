@@ -1,149 +1,168 @@
 import java.io.*;
 import java.util.*;
 import java.net.*;
-import org.jsoup.*;
-import org.jsoup.nodes.*;
-import org.jsoup.select.*;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
-public class GoogleQuery {
+public class GoogleQuery{
 
-	public int searchNum;
-	public String searchKeyword, url, content, results;
+	public int searchNum = 20;
+	public String searchKeyword, url, content, title, results;
+	public static String citeUrl;	
 	public KeywordList kLst;
 	public PriorityQueue<WebNode> heap;
-	HashMap<String, String> title = new HashMap<String, String>();
-	
-	public GoogleQuery(String searchKeyword, int search) throws IOException {
+	public long startingTime;
+
+
+	public GoogleQuery(String searchKeyword) throws UnsupportedEncodingException{
 		
-		this.searchKeyword = searchKeyword;
-		this.searchNum = search;
-		setKeywords();
-		this.content = fetchContent(url);
-		this.heap = new PriorityQueue<WebNode>(2 * search, new WebComparator());
-		this.title = new HashMap<String, String>();
-		this.results = "";
-		getUrl();
+		//this.searchNum = search;
+		this.startingTime = System.currentTimeMillis();
+		kLst = new KeywordList();
+		String encodedKeyword = java.net.URLEncoder.encode(searchKeyword,"utf-8");
+		this.searchKeyword = encodedKeyword;
+		this.url = "http://www.google.com/search?q=" + this.searchKeyword + "&oe=utf8&num=50";
 
 	}
+	public GoogleQuery() {
+		
+		}
 	
-	public static String fetchContent(String url) throws IOException {
+	private String fetchContent() throws IOException{
+		
 		String retVal = "";
 		String line = null;
-		
-		// URL Connection
 		URL u = new URL(url);
 		URLConnection conn = u.openConnection();
 		conn.setRequestProperty("User-agent", "Chrome/7.0.517.44");
 		InputStream in = conn.getInputStream();
-		
-		// Web Data
 		InputStreamReader inReader = new InputStreamReader(in, "utf-8");
-		BufferedReader bufReader = new BufferedReader(inReader);
-		while ((line = bufReader.readLine()) != null) {
-			retVal = retVal + line;
+		BufferedReader bf = new BufferedReader(inReader);
+		
+		while ((line = bf.readLine()) != null) {
+			retVal += line;
 		}
 		return retVal;
 	}
-	
-	public void setKeywords() {
-		String[] arr = searchKeyword.split(" ");
-		String keyword = "";
-		
-		for (int i = 0; i < arr.length; i++) {
-			keyword = keyword + arr[i] + "+";
-		}
-		this.url = "http://www.google.com/search?q=" + keyword + "音樂節" + "&oe=utf8&num=" + 2 * searchNum;
-		
-		this.kLst = new KeywordList(arr);
-	}
-	
-	public static String encodeURL(String url) {
-		try {
-		      String encodeURL = URLEncoder.encode( url, "UTF-8" );
-		      return encodeURL;
-		    } catch (UnsupportedEncodingException e) {
-		      return "Error: " + e.getMessage();
-		    }
-	}
 
-	public HashMap<String, String> HashMapQuery() throws IOException{
+	public HashMap<String, String> query() throws IOException,MalformedURLException,FileNotFoundException {
 
-		if(content==null){
-			content = fetchContent(url);
+		if (content == null){
+			content = fetchContent();
 		}
-		HashMap<String, String> map = new HashMap<String, String>();	
+
+		HashMap<String, String> retVal = new HashMap<String, String>();
 		Document doc = Jsoup.parse(content);
 		Elements lis = doc.select("div");
 		lis = lis.select(".kCrYT");
-		for(Element li : lis){
-			try{
-				String citeUrl = li.select("a").get(0).attr("href");
-				String title = li.select("a").get(0).select(".vvjwJb").text();
-				if(title.equals("")) {
-					continue;
-				}
-				map.put(title, citeUrl);
-			} catch (IndexOutOfBoundsException e) {
-				e.printStackTrace();
-			}
-		}
-		return map;
-	}
-	
-	public String[][] ArrQuery() throws IOException {
-		WebNode node;
-		String[][] init = new String[searchNum][2];
-		String[][] arr = init;
-		int i;
-		for (i = 0; i < searchNum; i++) {
-			node = heap.poll();
-			Boolean condition = node!= null;
-			if (condition == true) {
-				arr[i][0] = node.webPage.title;
-				arr[i][1] = node.webPage.url;
-				}
-		}
-		return arr;
-	}
-	
-	public void getUrl() {
-		
-		Document doc = Jsoup.parse(content);
-		Elements lis = doc.select("div.kCrYT");
-		// Elements lis = doc.select("div.kCrYT > a");
-		int i = 0;
 		
 		for (Element li : lis) {
-			String title = li.select("h3").text();
-			if (title.equals("")) {
-				continue;
-			}
-			// add / offer websiteURL to heap
-			String url = "https://www.google.com" + li.attr("href");
-			try {
-				WebPage init = new WebPage(title, url, kLst);
-				WebNode node = new WebNode(init);
-				//heap.offer(node);
-				heap.add(node);
-				i += 1;
-				System.out.printf("%2d%s%n%s%d%n", i, ": " + title, "    Score: ", node.nodeScore);
+			try{
+				title = li.select("a").get(0).select(".vvjwJb").text();
+				citeUrl = li.select("a").get(0).attr("href").substring(8);
+				if (title.equals("")) {
+					continue;
+				}
+				WebPage rootPage = new WebPage(citeUrl,title);		
+				WebTree tree = new WebTree(rootPage);
+				
+				// absolute path
+				File file = new File("/Users/hsuehpo42777/Desktop/SEProject/input.txt");
+				Scanner sc = new Scanner(file);
+				
+
+				while(sc.hasNextLine()){
+					int num = sc.nextInt();
+					ArrayList<Keyword> keywords = new ArrayList<Keyword>();
+					for(int i = 0 ; i < num ; i++){
+						
+						String s = sc.next();
+						String name = new String(s.getBytes("GBK"),"UTF-8");
+						
+						double weight = sc.nextDouble();
+						Keyword keyword = new Keyword(name, weight);
+						keywords.add(keyword);
+					}
+					tree.setPostOrderScore(keywords);
+					tree.eularPrintTree();	
+					
+					kLst.getList().add(WebTree.result);
+				}
+				sc.close();
+				System.out.println(citeUrl);
+				System.out.println("-----------------------------");
+//				System.out.println("    Text length: " + node.webPage.wordCounter.content.length());
+//				System.out.println("    Score: " + node.nodeScore);
+			
+				
+			
+
 			} catch (Exception e) {
-				System.out.println(e.getMessage());
-				//continue;
+				 System.out.println("Skip: " + e.getMessage());
+				 continue;
+			} 
 			}
+		
+		kLst.sort();
+		Collections.reverse(kLst.lst);
+		kLst.show();
+		
+		for(Result result:kLst.lst) {
+			retVal.put(result.name, result.url);
+
 		}
 		
-		results = results + String.format("-".repeat(5) + "Searching Results" + "-".repeat(5) + "\n");
-		results = results + String.format("Keyword: " + searchKeyword + "\n");
-		results = results + String.format("Searched: " + searchNum + "\n");
-		results = results + String.format("Fine website: " + i + "\n");
-	}
+		//results = results + String.format("-".repeat(5) + "Searching Results" + "-".repeat(5) + "\n");
+		//results = results + String.format("Keyword: " + searchKeyword + "\n");
+		//results = results + String.format("Searched: " + searchNum + "\n");
+		//results = results + String.format("Fine website: " + okUrl + "\n");
+		//results += "Read error website: " + readErrorUrl + "\n";
+		//results += "---------------------------" + "\n";
+		//results += "Searching Time: " + ((System.currentTimeMillis() - startingTime) / 1000) + " sec.\n\n";
 	
-	public String show() {
-		return results;
+	 
+		return retVal;
 	}
 
-
 	
-
+	 static{
+		HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+			public boolean verify(String hostname,SSLSession session) {
+				return true;
+			}
+		}
+		);
+	}
+	 
+	 public ArrayList<String> hyper() throws IOException{
+			if(content==null){
+				content= fetchContent();
+			}
+			Document doc = Jsoup.parse(content);
+			Elements lis = doc.select("a");
+			ArrayList<String>list = new ArrayList<String>();
+			for(Element li : lis) {
+				String url = li.attr("href");
+				list.add(url);	
+			}
+			return list;
+			
+	 }
+	 public static String encodeURL(String url) {
+			try {
+				String encodeURL = URLEncoder.encode(url, "UTF-8");
+				return encodeURL;
+			} catch (UnsupportedEncodingException e) {
+				return "Error: " + e.getMessage();
+			}
+		}
+	 
+	 
 }
+	
+	

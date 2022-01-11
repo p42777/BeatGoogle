@@ -1,39 +1,31 @@
-import java.io.*;
-import java.text.*;
-import java.util.*;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 
 public class WebPage {
-	public String name;
-	public String title;
 	public String url;
-	public WordCounter wordCounter, counter;
+	public String name;
+	public WordCounter wordCounter;
 	public double score;
 	
-	public WebPage(String title, String url, KeywordList keywordList) throws IOException {
-		this.title = title;
+	public WebPage(String url,String name) throws UnsupportedEncodingException{
+		
 		this.url = url;
-		this.wordCounter = new WordCounter(title, url, keywordList);
+		this.name = name;
+		this.wordCounter = new WordCounter(url);	
 	}
-
-	public int getScore() {
-		return wordCounter.countScore();
-	}
-
-
-	 public void setScore(ArrayList<Keyword> keywords) throws IOException, ParseException {
-		  try {
-			  
+	
+	public void setScore(ArrayList<Keyword> keywords) throws IOException{
+		try {
 			  score = 0;
 			  for (Keyword keyword : keywords) {
-				  score = score + keyword.weight * counter.countKeyword(keyword.name);
+				  score = score + keyword.weight * wordCounter.countKeyword(keyword.name);
 			  }
 		  }catch (Exception e) {
 			  e.printStackTrace();
 		  
 		  }
-		
-	 }
-
+	}
+			
 }
-
-

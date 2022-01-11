@@ -1,9 +1,14 @@
+
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.swing.text.StyledEditorKit.ForegroundAction;
+
 
 public class WebTree {
+	
 	public WebNode root;
+	public static Result result;
 	
 	public WebTree(WebPage rootPage){
 		this.root = new WebNode(rootPage);
@@ -14,41 +19,44 @@ public class WebTree {
 	}
 	
 	private void setPostOrderScore(WebNode startNode, ArrayList<Keyword> keywords) throws IOException{
-		startNode.setPostNodeScore(keywords);
-		if(!startNode.children.isEmpty()) {
-			for(WebNode child : startNode.children) {
-				setPostOrderScore(child,keywords);
-				startNode.nodeScore += child.nodeScore;
-			}
-			
+		
+		for(WebNode child : startNode.children){
+			setPostOrderScore(child, keywords);	
 		}
-	}
+	
+			startNode.setNodeScore(keywords);
+		}
 	
 	public void eularPrintTree(){
 		eularPrintTree(root);
 	}
 	
 	private void eularPrintTree(WebNode startNode){
-		
 		int nodeDepth = startNode.getDepth();
 		
 		if(nodeDepth > 1) System.out.print("\n" + repeat("\t", nodeDepth-1));
+		
+		//print "("
 		System.out.print("(");
-		System.out.print(startNode.webPage.name+","+startNode.nodeScore);
+		System.out.print(startNode.nodeScore+","+startNode.webPage.name);
+		WebTree.result = new Result(startNode.webPage.name,startNode.nodeScore, GoogleQuery.citeUrl); 
 		
 		for(WebNode child : startNode.children){
 			eularPrintTree(child);
-
 		}
+		
+		//print ")"
 		System.out.print(")");
+		
+		
 		if(startNode.isTheLastChild()) System.out.print("\n" + repeat("\t", nodeDepth-2));
 		
 	}
 	
 	private String repeat(String str,int repeat){
-		String retVal  = "";
-		for(int i=0;i<repeat;i++){
-			retVal+=str;
+		String retVal = " ";
+		for(int i = 0 ; i < repeat ; i++){
+			retVal += str;
 		}
 		return retVal;
 	}
@@ -123,5 +131,4 @@ public class WebTree {
 	    }
 	  }
 	
-
 }
