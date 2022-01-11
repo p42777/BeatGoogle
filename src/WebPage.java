@@ -17,15 +17,11 @@ public class WebPage {
 	}
 	
 	public void setScore(ArrayList<Keyword> keywords) throws IOException{
-		try {
-			  score = 0;
+					  score = 0;
 			  for (Keyword keyword : keywords) {
 				  score = score + keyword.weight * wordCounter.countKeyword(keyword.name);
 			  }
-		  }catch (Exception e) {
-			  e.printStackTrace();
 		  
-		  }
 	}
 			
 }

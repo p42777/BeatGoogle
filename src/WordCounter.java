@@ -39,8 +39,9 @@ public class WordCounter {
 		content = content.toUpperCase();
 		keyword = keyword.toUpperCase();
 	
-		int retVal = 0, fromIdx = 0, found = -1;
-	
+		int retVal = 0;
+		int fromIdx = 0;
+		int found = -1;
 		while ((found = content.indexOf(keyword, fromIdx)) != -1){
 		    retVal++;
 		    fromIdx = found + keyword.length();

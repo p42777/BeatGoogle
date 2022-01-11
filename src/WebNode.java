@@ -21,17 +21,20 @@ public class WebNode {
 	}
 	
 	public void setNodeScore(ArrayList<Keyword> keywords) throws IOException{
+		//this method should be called in post-order mode
 		
-		try {
-			webPage.setScore(keywords);
-		} 
-		catch (IOException e) {
-			e.printStackTrace();
-		}
+		//**compute webPage score
+		webPage.setScore(keywords);
+		//**set webPage score to nodeScore
 		nodeScore = webPage.score;
+		
+		//**nodeScore += all children°¶s nodeScore 
 		for(WebNode child : children){
 			nodeScore += child.nodeScore;
 		}
+		
+				
+			
 	}
 	
 	public void addChild(WebNode child){

@@ -19,16 +19,6 @@ public class Keyword {
 	
 	}
 	  
-	public String getName(){
-		
-		return name;
-		
-	}
-		   
-	public double getWeight(){
-		    	
-		return weight;
-		
-	}
+	
 
 }

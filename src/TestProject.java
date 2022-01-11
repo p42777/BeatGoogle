@@ -47,10 +47,11 @@ public class TestProject extends HttpServlet {
 		request.setCharacterEncoding("UTF-8");
 		response.setContentType("text/html");
 		
-		int search = 20;
+		/*int search = 20;
 		if(request.getParameter("searchNum") != null) {
 			search = Integer.parseInt(request.getParameter("searchNum"));
 		}
+		*/
 		
 		// search.jsp
 		if(request.getParameter("keyword")== null) { 
@@ -61,26 +62,27 @@ public class TestProject extends HttpServlet {
 		}
 		
 		// googleitem.jsp
-		GoogleQuery google; 
-		google = new GoogleQuery(request.getParameter("keyword"));
+		GoogleQuery google = new GoogleQuery(request.getParameter("keyword"));
 		HashMap<String, String> query = google.query();
-		int index = query.size();
-		String[][] s = new String[index][2];
+		
+		
+		String[][] s = new String[query.size()][2];
+		
 		request.setAttribute("query", s);
 		
 		int num = 0;
 		for(Entry<String, String> entry : query.entrySet()) { 
-		    String key = entry.getKey();
-		    s[num][0] = key;
-		    String val = entry.getValue();
-		    s[num][1] = val;
-		    num = num + 1;
+			 String key = entry.getKey();
+			    String value = entry.getValue();
+			    s[num][0] = key;//title
+			    s[num][1] = value;//url
+			    num++;
 		}
 		
-		KeywordList kLst = google.kLst;
-		for(int i = 0 ; i < kLst.lst.size() ; i++) {
-			 s[i][0] = kLst.lst.get(i).name;
-			 s[i][1] = kLst.lst.get(i).url;
+		KeywordList a=google.kLst;
+		for(int i=0;i<a.lst.size();i++) {
+			 s[i][0] = a.lst.get(i).name;//title
+			 s[i][1] = a.lst.get(i).url;//url
 		}
 		request.getRequestDispatcher("googleitem.jsp").forward(request, response); 
 		

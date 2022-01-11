@@ -10,7 +10,7 @@ public class KeywordList {
     }
 	
 	public ArrayList<Result> getList(){
-		return lst;
+		return this.lst;
 	}
 	
 	public void add(Result result){
@@ -18,7 +18,16 @@ public class KeywordList {
     }
 	
 	public void sort(){
-		quickSort(0, lst.size()-1);
+		if(lst.size() == 0)
+		{
+			System.out.println("Invalid");
+		}
+		else 
+		{
+			quickSort(0, lst.size()-1);
+
+		}
+
 	}
 	
 	private void quickSort(int leftbound, int rightbound){
@@ -91,9 +100,8 @@ public class KeywordList {
 		StringBuilder sb = new StringBuilder();
 		for(int i = 0 ; i < lst.size() ; i++){
 			Result result = lst.get(i);
-			if(i > 0) {
-				sb.append(" ");
-			}
+			if(i > 0) sb.append(" ");
+			
 			sb.append(result.toString());
 		}
 		
